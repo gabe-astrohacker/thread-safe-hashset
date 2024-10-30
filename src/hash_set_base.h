@@ -3,6 +3,15 @@
 
 #include <cstddef>
 
+#define GLOBAL_THRESHOLD 100;
+#define BUCKET_THRESHOLD 50;
+
+template<typename T>
+using bucket_t = std::vector<T>;
+
+template<typename T>
+using hashset_table_t = std::vector<T>;
+
 template <typename T>
 class HashSetBase {
  public:
@@ -20,7 +29,7 @@ class HashSetBase {
   [[nodiscard]] virtual bool Contains(T elem) = 0;
 
   // Returns the size of the hash set.
-  [[nodiscard]] virtual size_t Size() const = 0;
+  [[nodiscard]] virtual size_t Size() const = 0;  
 };
 
 #endif  // HASH_SET_BASE_H
