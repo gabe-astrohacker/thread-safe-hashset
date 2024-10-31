@@ -7,19 +7,22 @@
 #include <functional>
 #include <mutex>
 #include <vector>
+
 #include "./hash_set_base.h"
 
 template <typename T>
 class HashSetRefinable : public HashSetBase<T> {
  public:
-  explicit HashSetRefinable(size_t initial_capacity) : set_size_(0), being_resized_(false) {
+  explicit HashSetRefinable(size_t initial_capacity)
+      : set_size_(0), being_resized_(false) {
     table_ = std::vector<std::vector<T>>(initial_capacity, std::vector<T>());
     mutexes_ = std::vector<std::mutex>(initial_capacity, std::mutex());
   }
 
   bool Add(T elem) final {
-    while (being_resized_) {}
-    std::mutex *curr_mutex = NULL;
+    while (being_resized_) {
+    }
+    std::mutex* curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem).lock;
     } while (curr_mutex != GetMutex(elem));
@@ -36,13 +39,14 @@ class HashSetRefinable : public HashSetBase<T> {
   }
 
   bool Remove(T elem) final {
-    while (being_resized_) {}
-    std::mutex *curr_mutex = NULL;
+    while (being_resized_) {
+    }
+    std::mutex* curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem).lock();
     } while (curr_mutex != GetMutex(elem));
 
-    bucket_t<T> &bucket = GetBucket(elem);
+    bucket_t<T>& bucket = GetBucket(elem);
 
     for (int i = 0; i < bucket.size(); i++) {
       if (bucket[i] == elem) {
@@ -57,8 +61,9 @@ class HashSetRefinable : public HashSetBase<T> {
   }
 
   [[nodiscard]] bool Contains(T elem) final {
-    while (being_resized_) {}
-    std::mutex *curr_mutex = NULL;
+    while (being_resized_) {
+    }
+    std::mutex* curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem).lock();
     } while (curr_mutex != GetMutex(elem));
@@ -71,43 +76,41 @@ class HashSetRefinable : public HashSetBase<T> {
   }
 
  private:
-  bool ContainElem(T elem) const final {
-    bucket_t<T> &bucket = GetBucket(elem);
+  bool ContainElem(T elem) {
+    bucket_t<T>& bucket = GetBucket(elem);
     return std::find(bucket.begin(), bucket.end(), elem) != bucket.end();
   }
 
-  int Hash(T elem) const final { return std::hash<T>()(elem); }
+  int Hash(T elem) { return std::hash<T>()(elem); }
 
-  bucket_t<T> &GetBucket(T elem) const final {
-    return table_[Hash(elem) % table_.size()];
-  }
+  bucket_t<T>& GetBucket(T elem) { return table_[Hash(elem) % table_.size()]; }
 
-  std::mutex &GetMutex(T elem) const final {
+  std::mutex& GetMutex(T elem) {
     return mutexes_[Hash(elem) % mutexes_.size()];
   }
 
-  bool LessThanGlobalThreshold(bucket_t<T> bucket) const final {
-    return bucket.size() < GLOBAL_THRESHOLD;
+  bool LessThanGlobalThreshold(bucket_t<T> bucket) {
+    return bucket.size() < GLOBAL_THRESHOLD
   }
 
-  bool LessThanBucketThreshold(bucket_t<T> bucket) const final {
-    return bucket.size() < BUCKET_THRESHOLD;
+  bool LessThanBucketThreshold(bucket_t<T> bucket) {
+    return bucket.size() < BUCKET_THRESHOLD
   }
 
-  bool ResizePolicy() const final {
-    bool cond1 =
-        std::all_of(table_.begin(), table_.end(), &LessThanGlobalThreshold);
+  bool ResizePolicy() {
+    bool cond1 = std::all_of(table_.begin(), table_.end(),
+                             &HashSetRefinable::LessThanGlobalThreshold);
 
-    int count =
-        std::count_if(table_.begin(), table_.end(), &LessThanBucketThreshold);
+    int count = std::count_if(table_.begin(), table_.end(),
+                              &HashSetRefinable::LessThanBucketThreshold);
     bool cond2 = count > table_.size() / 4;
 
     return cond1 || cond2;
   }
 
-  void Resize() final {
+  void Resize() {
     being_resized_ = true;
-    for (auto &mutex : mutexes_) {
+    for (auto& mutex : mutexes_) {
       mutex.lock();
     }
 
@@ -123,10 +126,10 @@ class HashSetRefinable : public HashSetBase<T> {
     table_ = new_table;
 
     std::vector<std::mutex> new_mutexes(new_size, std::mutex());
-    std::vector<std::mutex> &old_mutexes = mutexes_;
+    std::vector<std::mutex>& old_mutexes = mutexes_;
     mutexes_ = new_mutexes;
 
-    for (auto &mutex : mutexes_) {
+    for (auto& mutex : mutexes_) {
       mutex.unlock();
     }
     being_resized_ = false;
