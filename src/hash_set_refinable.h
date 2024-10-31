@@ -19,7 +19,7 @@ class HashSetRefinable : public HashSetBase<T> {
 
   bool Add(T elem) final {
     while (being_resized_) {}
-    std::mutex &curr_mutex;
+    std::mutex *curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem).lock;
     } while (curr_mutex != GetMutex(elem));
@@ -30,14 +30,14 @@ class HashSetRefinable : public HashSetBase<T> {
     bucket.push_back(elem);
     set_size_++;
 
-    curr_mutex.unlock();
+    curr_mutex->unlock();
     if (ResizePolicy()) Resize();
     return true;
   }
 
   bool Remove(T elem) final {
     while (being_resized_) {}
-    std::mutex &curr_mutex;
+    std::mutex *curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem).lock();
     } while (curr_mutex != GetMutex(elem));
@@ -51,18 +51,18 @@ class HashSetRefinable : public HashSetBase<T> {
       }
     }
 
-    curr_mutex.unlock();
+    curr_mutex->unlock();
 
     return false;
   }
 
   [[nodiscard]] bool Contains(T elem) final {
     while (being_resized_) {}
-    std::mutex &curr_mutex;
+    std::mutex *curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem).lock();
     } while (curr_mutex != GetMutex(elem));
-    curr_mutex.unlock();
+    curr_mutex->unlock();
     return ContainsElem(elem);
   }
 
@@ -96,10 +96,10 @@ class HashSetRefinable : public HashSetBase<T> {
 
   bool ResizePolicy() const final {
     bool cond1 =
-        std::all_of(table_.begin(), table_.end(), LessThanGlobalThreshold);
+        std::all_of(table_.begin(), table_.end(), &LessThanGlobalThreshold);
 
     int count =
-        std::count_if(table_.begin(), table_.end(), LessThanBucketThreshold);
+        std::count_if(table_.begin(), table_.end(), &LessThanBucketThreshold);
     bool cond2 = count > table_.size() / 4;
 
     return cond1 || cond2;
@@ -116,14 +116,14 @@ class HashSetRefinable : public HashSetBase<T> {
 
     for (auto& bucket : table_) {
       for (auto& elem : bucket) {
-        bucket_t new_bucket = new_table[Hash(elem) % new_size];
+        bucket_t<T> new_bucket = new_table[Hash(elem) % new_size];
         new_bucket.push_back(elem);
       }
     }
     table_ = new_table;
 
     std::vector<std::mutex> new_mutexes(new_size, std::mutex());
-    std::vector<std::mutex> &old_mutexes = &mutexes_;
+    std::vector<std::mutex> &old_mutexes = mutexes_;
     mutexes_ = new_mutexes;
 
     for (auto &mutex : mutexes_) {

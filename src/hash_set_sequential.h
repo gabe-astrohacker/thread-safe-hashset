@@ -64,10 +64,10 @@ class HashSetSequential : public HashSetBase<T> {
 
   bool ResizePolicy() const final {
     bool cond1 =
-        std::all_of(table_.begin(), table_.end(), LessThanGlobalThreshold);
+        std::all_of(table_.begin(), table_.end(), &LessThanGlobalThreshold);
 
     int count =
-        std::count_if(table_.begin(), table_.end(), LessThanBucketThreshold);
+        std::count_if(table_.begin(), table_.end(), &LessThanBucketThreshold);
     bool cond2 = count > table_.size() / 4;
 
     return cond1 || cond2;
