@@ -1,8 +1,11 @@
 #ifndef HASH_SET_STRIPED_H
 #define HASH_SET_STRIPED_H
 
+#include <algorithm>
 #include <cassert>
-
+#include <functional>
+#include <mutex>
+#include <vector>
 #include "src/hash_set_base.h"
 
 template <typename T>
@@ -42,7 +45,7 @@ class HashSetStriped : public HashSetBase<T> {
     return false;
   }
 
-  [[nodiscard]] bool Contains(T /*elem*/) final {
+  [[nodiscard]] bool Contains(T elem) final {
     std::scoped_lock<std::mutex> lock(GetMutex(elem));
     return ContainsElem(elem);
   }
@@ -86,7 +89,7 @@ class HashSetStriped : public HashSetBase<T> {
 
   void Resize() final {
     for (auto &mutex : mutexes_) {
-      mutex.lock()
+      mutex.lock();
     }
 
     size_t new_size = table_.size() * 2;
@@ -101,7 +104,7 @@ class HashSetStriped : public HashSetBase<T> {
     table_ = new_table;
 
     for (auto &mutex : mutexes_) {
-      mutex.unlock()
+      mutex.unlock();
     }
   }
 
