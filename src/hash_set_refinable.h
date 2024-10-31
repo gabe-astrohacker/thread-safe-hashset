@@ -81,7 +81,7 @@ class HashSetRefinable : public HashSetBase<T> {
     return std::find(bucket.begin(), bucket.end(), elem) != bucket.end();
   }
 
-  int Hash(T elem) { return std::hash<T>()(elem); }
+  size_t Hash(T elem) { return std::hash<T>()(elem); }
 
   bucket_t<T>& GetBucket(T elem) { return table_[Hash(elem) % table_.size()]; }
 
@@ -99,10 +99,10 @@ class HashSetRefinable : public HashSetBase<T> {
 
   bool ResizePolicy() {
     bool cond1 = std::all_of(table_.begin(), table_.end(),
-                             &HashSetRefinable::LessThanGlobalThreshold);
+                             [](bucket_t<T> b) { return bucket.size() < GLOBAL_THRESHOLD; });
 
     int count = std::count_if(table_.begin(), table_.end(),
-                              &HashSetRefinable::LessThanBucketThreshold);
+                              [](bucket_t<T> b) { return bucket.size() < BUCKET_THRESHOLD; });
     bool cond2 = count > table_.size() / 4;
 
     return cond1 || cond2;
