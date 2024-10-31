@@ -6,7 +6,7 @@
 #include <functional>
 #include <vector>
 
-#include "src/hash_set_base.h"
+#include "./hash_set_base.h"
 
 template <typename T>
 class HashSetSequential : public HashSetBase<T> {
@@ -18,7 +18,7 @@ class HashSetSequential : public HashSetBase<T> {
   bool Add(T elem) final {
     if (Contains(elem)) return false;
 
-    bucket_t &bucket = GetBucket(elem);
+    bucket_t<T> &bucket = GetBucket(elem);
     bool result = bucket.push_back(elem);
     set_size_++;
 
@@ -27,7 +27,7 @@ class HashSetSequential : public HashSetBase<T> {
   }
 
   bool Remove(T elem) final {
-    bucket_t &bucket = GetBucket(elem);
+    bucket_t<T> &bucket = GetBucket(elem);
 
     for (int i = 0; i < bucket.size(); i++) {
       if (bucket[i] == elem) {
@@ -40,7 +40,7 @@ class HashSetSequential : public HashSetBase<T> {
   }
 
   [[nodiscard]] bool Contains(T elem) final {
-    bucket_t &bucket = GetBucket(elem);
+    bucket_t<T> &bucket = GetBucket(elem);
 
     return std::find(bucket.begin(), bucket.end(), elem) != bucket.end();
   }
@@ -50,15 +50,15 @@ class HashSetSequential : public HashSetBase<T> {
  private:
   int Hash(T elem) const final { return std::hash<T>()(elem); }
 
-  bucket_t& GetBucket(T elem) final {
-    return table_[Hash(elem) % table.size()];
+  bucket_t<T>& GetBucket(T elem) final {
+    return table_[Hash(elem) % table_.size()];
   }
 
-  bool LessThanGlobalThreshold(bucket_t bucket) const final {
+  bool LessThanGlobalThreshold(bucket_t<T> bucket) const final {
     return bucket.size() < GLOBAL_THRESHOLD;
   }
 
-  bool LessThanBucketThreshold(bucket_t bucket) const final {
+  bool LessThanBucketThreshold(bucket_t<T> bucket) const final {
     return bucket.size() < BUCKET_THRESHOLD;
   }
 
@@ -79,7 +79,7 @@ class HashSetSequential : public HashSetBase<T> {
 
     for (auto &bucket : table_) {
       for (auto &elem : bucket) {
-        bucket_t new_bucket = new_table[Hash(elem) % new_size];
+        bucket_t<T> new_bucket = new_table[Hash(elem) % new_size];
         new_bucket.push_back(elem);
       }
     }

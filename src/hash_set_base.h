@@ -2,6 +2,7 @@
 #define HASH_SET_BASE_H
 
 #include <cstddef>
+#include <vector>
 
 #define GLOBAL_THRESHOLD 100;
 #define BUCKET_THRESHOLD 50;

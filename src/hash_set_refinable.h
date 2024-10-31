@@ -7,42 +7,42 @@
 #include <functional>
 #include <mutex>
 #include <vector>
-#include "src/hash_set_base.h"
+#include "./hash_set_base.h"
 
 template <typename T>
 class HashSetRefinable : public HashSetBase<T> {
  public:
-  explicit HashSetStriped(size_t initial_capacity) : set_size_(0), being_resized_(false) {
+  explicit HashSetRefinable(size_t initial_capacity) : set_size_(0), being_resized_(false) {
     table_ = std::vector<std::vector<T>>(initial_capacity, std::vector<T>());
-    mutexes_ = std::vector<std::mutexes>(initial_capacity, std::mutex());
+    mutexes_ = std::vector<std::mutex>(initial_capacity, std::mutex());
   }
 
   bool Add(T elem) final {
     while (being_resized_) {}
+    std::mutex &curr_mutex;
     do {
-      std::mutex &mutex = GetMutex(elem);
-      std::scoped_lock<std::mutex> lock(mutex);
-    } while (mutex != GetMutex(elem));
+      curr_mutex = GetMutex(elem).lock;
+    } while (curr_mutex != GetMutex(elem));
 
     if (ContainsElem(elem)) return false;
 
-    bucket_t bucket = GetBucket(elem);
+    bucket_t<T> bucket = GetBucket(elem);
     bucket.push_back(elem);
     set_size_++;
 
-    lock.unlock();
+    curr_mutex.unlock();
     if (ResizePolicy()) Resize();
     return true;
   }
 
   bool Remove(T elem) final {
     while (being_resized_) {}
+    std::mutex &curr_mutex;
     do {
-      std::mutex &mutex = GetMutex(elem);
-      std::scoped_lock<std::mutex> lock(mutex);
-    } while (mutex != GetMutex(elem));
+      curr_mutex = GetMutex(elem).lock();
+    } while (curr_mutex != GetMutex(elem));
 
-    bucket_t &bucket = GetBucket(elem);
+    bucket_t<T> &bucket = GetBucket(elem);
 
     for (int i = 0; i < bucket.size(); i++) {
       if (bucket[i] == elem) {
@@ -51,15 +51,18 @@ class HashSetRefinable : public HashSetBase<T> {
       }
     }
 
+    curr_mutex.unlock();
+
     return false;
   }
 
   [[nodiscard]] bool Contains(T elem) final {
     while (being_resized_) {}
+    std::mutex &curr_mutex;
     do {
-      std::mutex &mutex = GetMutex(elem);
-      std::scoped_lock<std::mutex> lock(mutex);
-    } while (mutex != GetMutex(elem));
+      curr_mutex = GetMutex(elem).lock();
+    } while (curr_mutex != GetMutex(elem));
+    curr_mutex.unlock();
     return ContainsElem(elem);
   }
 
@@ -69,23 +72,25 @@ class HashSetRefinable : public HashSetBase<T> {
 
  private:
   bool ContainElem(T elem) const final {
-    bucket_t &bucket = GetBucket(elem);
+    bucket_t<T> &bucket = GetBucket(elem);
     return std::find(bucket.begin(), bucket.end(), elem) != bucket.end();
   }
 
-  bucket_t &GetBucket(T elem) const final {
-    return table_[std::hash{}(elem) % table.size()];
+  int Hash(T elem) const final { return std::hash<T>()(elem); }
+
+  bucket_t<T> &GetBucket(T elem) const final {
+    return table_[Hash(elem) % table_.size()];
   }
 
   std::mutex &GetMutex(T elem) const final {
-    return mutexes_[std::hash{}(elem) % mutexes_.size()];
+    return mutexes_[Hash(elem) % mutexes_.size()];
   }
 
-  bool LessThanGlobalThreshold(bucket_t bucket) const final {
+  bool LessThanGlobalThreshold(bucket_t<T> bucket) const final {
     return bucket.size() < GLOBAL_THRESHOLD;
   }
 
-  bool LessThanBucketThreshold(bucket_t bucket) const final {
+  bool LessThanBucketThreshold(bucket_t<T> bucket) const final {
     return bucket.size() < BUCKET_THRESHOLD;
   }
 
@@ -107,11 +112,11 @@ class HashSetRefinable : public HashSetBase<T> {
     }
 
     size_t new_size = table_.size() * 2;
-    hashset_table_t<T> new_table(new_size * 2, std::vector());
+    hashset_table_t<T> new_table(new_size * 2, std::vector<T>());
 
     for (auto& bucket : table_) {
       for (auto& elem : bucket) {
-        bucket_t new_bucket = new_table[std::hash()(elem) % new_size];
+        bucket_t new_bucket = new_table[Hash(elem) % new_size];
         new_bucket.push_back(elem);
       }
     }
