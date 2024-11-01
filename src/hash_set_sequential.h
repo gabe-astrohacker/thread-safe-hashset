@@ -25,7 +25,7 @@ class HashSetSequential : public HashSetBase<T> {
     set_size_++;
 
     if (ResizePolicy()) Resize();
-    return result;
+    return true;
   }
 
   bool Remove(T elem) final {
@@ -58,9 +58,9 @@ class HashSetSequential : public HashSetBase<T> {
     bool cond1 = std::all_of(table_.begin(), table_.end(),
                              [](bucket_t<T> &b) { return b.size() < GLOBAL_THRESHOLD });
 
-    int count = (int) std::count_if(table_.begin(), table_.end(),
-                              [](bucket_t<T> &b) { return b.size() < BUCKET_THRESHOLD });
-    bool cond2 = count > ((int) table_.size()) / 4;
+    int count = static_cast<int>(std::count_if(table_.begin(), table_.end(),
+                              [](bucket_t<T> &b) { return b.size() < BUCKET_THRESHOLD }));
+    bool cond2 = count > static_cast<int>(table_.size()) / 4;
 
     return cond1 || cond2;
   }
