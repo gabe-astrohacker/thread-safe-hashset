@@ -15,7 +15,7 @@ class HashSetRefinable : public HashSetBase<T> {
  public:
   explicit HashSetRefinable(size_t initial_capacity)
       : being_resized_(false), set_size_(0) {
-    for (int i = 0; i < initial_capacity; i++) {
+    for (size_t i = 0; i < initial_capacity; i++) {
       table_.push_back(std::vector<T>());
     }
     mutexes_.resize(initial_capacity);
@@ -103,9 +103,9 @@ class HashSetRefinable : public HashSetBase<T> {
     bool cond1 = std::all_of(table_.begin(), table_.end(),
                              [](bucket_t<T> &b) { return b.size() < GLOBAL_THRESHOLD });
 
-    int count = std::count_if(table_.begin(), table_.end(),
+    int count = (int) std::count_if(table_.begin(), table_.end(),
                               [](bucket_t<T> &b) { return b.size() < BUCKET_THRESHOLD });
-    bool cond2 = count > table_.size() / 4;
+    bool cond2 = count > ((int) table_.size()) / 4;
 
     return cond1 || cond2;
   }
@@ -121,7 +121,7 @@ class HashSetRefinable : public HashSetBase<T> {
 
     for (auto& bucket : table_) {
       for (auto& elem : bucket) {
-        bucket_t<T> new_bucket = new_table[Hash(elem) % new_size];
+        bucket_t<T> &new_bucket = new_table[Hash(elem) % new_size];
         new_bucket.push_back(elem);
       }
     }
