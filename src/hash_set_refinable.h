@@ -56,6 +56,7 @@ class HashSetRefinable : public HashSetBase<T> {
     for (size_t i = 0; i < bucket.size(); i++) {
       if (bucket[i] == elem) {
         bucket.erase(bucket.begin() + static_cast<long>(i));
+        set_size_--;
         return true;
       }
     }
