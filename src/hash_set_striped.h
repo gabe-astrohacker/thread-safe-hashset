@@ -39,7 +39,7 @@ class HashSetStriped : public HashSetBase<T> {
 
     bucket_t<T>& bucket = GetBucket(elem);
 
-    for (size_t i = 0; i < bucket.size(); i++) {
+    for (long i = 0; i < bucket.size(); i++) {
       if (bucket[i] == elem) {
         bucket.erase(bucket.begin() + i);
         return true;
