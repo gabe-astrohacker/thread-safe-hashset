@@ -35,7 +35,7 @@ class HashSetStriped : public HashSetBase<T> {
   }
 
   bool Remove(T elem) final {
-    std::scoped_lock<std::mutex> lock(GetMutex(elem));
+    std::unique_lock<std::mutex> lock(GetMutex(elem));
 
     bucket_t<T>& bucket = GetBucket(elem);
 
@@ -50,7 +50,7 @@ class HashSetStriped : public HashSetBase<T> {
   }
 
   [[nodiscard]] bool Contains(T elem) final {
-    std::scoped_lock<std::mutex> lock(GetMutex(elem));
+    std::unique_lock<std::mutex> lock(GetMutex(elem));
     return ContainsElem(elem);
   }
 

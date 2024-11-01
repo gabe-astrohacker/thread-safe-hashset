@@ -19,7 +19,7 @@ class HashSetCoarseGrained : public HashSetBase<T> {
   }
 
   bool Add(T elem) final {
-    std::scoped_lock<std::mutex> lock(hashset_mutex_);
+    std::unique_lock<std::mutex> lock(hashset_mutex_);
 
     if (ContainsElem(elem)) return false;
 
@@ -33,7 +33,7 @@ class HashSetCoarseGrained : public HashSetBase<T> {
   }
 
   bool Remove(T elem) final {
-    std::scoped_lock<std::mutex> lock(hashset_mutex_);
+    std::unique_lock<std::mutex> lock(hashset_mutex_);
 
     bucket_t<T>& bucket = GetBucket(elem);
 
@@ -48,12 +48,12 @@ class HashSetCoarseGrained : public HashSetBase<T> {
   }
 
   [[nodiscard]] bool Contains(T elem) final {
-    std::scoped_lock<std::mutex> lock(hashset_mutex_);
+    std::unique_lock<std::mutex> lock(hashset_mutex_);
     return ContainsElem(elem);
   }
 
   [[nodiscard]] size_t Size() const final {
-    std::scoped_lock<std::mutex> lock(hashset_mutex_);
+    std::unique_lock<std::mutex> lock(hashset_mutex_);
     return set_size_;
   }
 
