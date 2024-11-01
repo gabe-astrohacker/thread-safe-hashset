@@ -99,10 +99,10 @@ class HashSetRefinable : public HashSetBase<T> {
 
   bool ResizePolicy() {
     bool cond1 = std::all_of(table_.begin(), table_.end(),
-                             [](bucket_t<T> b) { return bucket.size() < GLOBAL_THRESHOLD; });
+                             [](bucket_t<T> &b) { return b.size() < GLOBAL_THRESHOLD });
 
     int count = std::count_if(table_.begin(), table_.end(),
-                              [](bucket_t<T> b) { return bucket.size() < BUCKET_THRESHOLD; });
+                              [](bucket_t<T> &b) { return b.size() < BUCKET_THRESHOLD });
     bool cond2 = count > table_.size() / 4;
 
     return cond1 || cond2;
