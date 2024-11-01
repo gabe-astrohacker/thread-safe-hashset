@@ -13,8 +13,10 @@ template <typename T>
 class HashSetStriped : public HashSetBase<T> {
  public:
   explicit HashSetStriped(size_t initial_capacity) : set_size_(0) {
-    table_ = std::vector<std::vector<T>>(initial_capacity, std::vector<T>());
-    mutexes_ = std::vector<std::mutex>(initial_capacity, std::mutex());
+    for (int i = 0; i < initial_capacity; i++) {
+      table_.push_back(std::vector<T>());
+    }
+    mutexes_.resize(initial_capacity);
   }
 
   bool Add(T elem) final {

@@ -13,7 +13,9 @@ template <typename T>
 class HashSetCoarseGrained : public HashSetBase<T> {
  public:
   explicit HashSetCoarseGrained(size_t initial_capacity) : set_size_(0) {
-    table_ = std::vector<std::vector<T>>(initial_capacity, std::vector<T>());
+    for (int i = 0; i < initial_capacity; i++) {
+      table_.push_back(std::vector<T>());
+    }
   }
 
   bool Add(T elem) final {
