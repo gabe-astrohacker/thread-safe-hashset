@@ -82,7 +82,7 @@ class HashSetRefinable : public HashSetBase<T> {
   }
 
  private:
-  bool ContainElem(T elem) {
+  bool ContainsElem(T elem) {
     bucket_t<T>& bucket = GetBucket(elem);
     return std::find(bucket.begin(), bucket.end(), elem) != bucket.end();
   }
@@ -93,14 +93,6 @@ class HashSetRefinable : public HashSetBase<T> {
 
   std::mutex& GetMutex(T elem) {
     return mutexes_[Hash(elem) % mutexes_.size()];
-  }
-
-  bool LessThanGlobalThreshold(bucket_t<T> bucket) {
-    return bucket.size() < GLOBAL_THRESHOLD
-  }
-
-  bool LessThanBucketThreshold(bucket_t<T> bucket) {
-    return bucket.size() < BUCKET_THRESHOLD
   }
 
   bool ResizePolicy() {
@@ -132,7 +124,6 @@ class HashSetRefinable : public HashSetBase<T> {
     table_ = new_table;
 
     std::vector<std::mutex> new_mutexes(new_size);
-    std::vector<std::mutex>& old_mutexes = mutexes_;
     mutexes_.swap(new_mutexes);
 
     for (auto& mutex : mutexes_) {

@@ -59,7 +59,7 @@ class HashSetStriped : public HashSetBase<T> {
   }
 
  private:
-  bool ContainElem(T elem) {
+  bool ContainsElem(T elem) {
     bucket_t<T>& bucket = GetBucket(elem);
     return std::find(bucket.begin(), bucket.end(), elem) != bucket.end();
   }
