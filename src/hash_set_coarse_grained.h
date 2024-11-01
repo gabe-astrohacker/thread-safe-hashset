@@ -39,7 +39,7 @@ class HashSetCoarseGrained : public HashSetBase<T> {
 
     for (size_t i = 0; i < bucket.size(); i++) {
       if (bucket[i] == elem) {
-        bucket.erase(i);
+        bucket.erase(bucket.begin() + i);
         return true;
       }
     }
@@ -53,7 +53,6 @@ class HashSetCoarseGrained : public HashSetBase<T> {
   }
 
   [[nodiscard]] size_t Size() const final {
-    std::unique_lock<std::mutex> lock(hashset_mutex_);
     return set_size_;
   }
 

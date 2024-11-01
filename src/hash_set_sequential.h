@@ -33,7 +33,7 @@ class HashSetSequential : public HashSetBase<T> {
 
     for (size_t i = 0; i < bucket.size(); i++) {
       if (bucket[i] == elem) {
-        bucket.erase(i);
+        bucket.erase(bucket.begin() + i);
         return true;
       }
     }
