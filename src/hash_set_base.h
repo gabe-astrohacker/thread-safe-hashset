@@ -11,7 +11,7 @@ template <typename T>
 using bucket_t = std::vector<T>;
 
 template <typename T>
-using hashset_table_t = std::vector<T>;
+using hashset_table_t = std::vector<bucket_t<T>;
 
 template <typename T>
 class HashSetBase {

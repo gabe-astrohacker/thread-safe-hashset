@@ -18,7 +18,8 @@ class HashSetRefinable : public HashSetBase<T> {
     for (size_t i = 0; i < initial_capacity; i++) {
       table_.push_back(std::vector<T>());
     }
-    mutexes_.resize(initial_capacity);
+    std::vector<std::mutex> mutexes(initial_capacity);
+    mutexes_.swap(mutexes);
   }
 
   bool Add(T elem) final {
