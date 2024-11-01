@@ -28,7 +28,7 @@ class HashSetRefinable : public HashSetBase<T> {
     std::mutex* curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem);
-      curr_mutex.lock();
+      curr_mutex->lock();
     } while (curr_mutex != GetMutex(elem));
 
     if (ContainsElem(elem)) return false;
@@ -48,7 +48,7 @@ class HashSetRefinable : public HashSetBase<T> {
     std::mutex* curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem);
-      curr_mutex.lock();
+      curr_mutex->lock();
     } while (curr_mutex != GetMutex(elem));
 
     bucket_t<T>& bucket = GetBucket(elem);
@@ -71,7 +71,7 @@ class HashSetRefinable : public HashSetBase<T> {
     std::mutex* curr_mutex = NULL;
     do {
       curr_mutex = GetMutex(elem);
-      curr_mutex.lock();
+      curr_mutex->lock();
     } while (curr_mutex != GetMutex(elem));
     curr_mutex->unlock();
     return ContainsElem(elem);
@@ -133,7 +133,7 @@ class HashSetRefinable : public HashSetBase<T> {
 
     std::vector<std::mutex> new_mutexes(new_size);
     std::vector<std::mutex>& old_mutexes = mutexes_;
-    mutexes_ = new_mutexes;
+    mutexes_.swap(new_mutexes);
 
     for (auto& mutex : mutexes_) {
       mutex.unlock();
