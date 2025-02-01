@@ -5,3 +5,4 @@
 • A refinable hash set, which is like a striped hash set except that there is always a separate lock per bucket of the hash set. That is, when the hash set is resized to use a larger number of buckets, the set of locks is resized correspondingly.
 
 This exercise was started as a coursework of a Theory and Practice of Concurrent Programming module and continued independently.
+
